@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego de Multiplicación</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #e0f7fa;
+      overflow: hidden;
+    }
+    canvas {
+      background-color: #ffffff;
+      display: block;
+      margin: 0 auto;
+      border: 1px solid #ccc;
+    }
+    #inputDisplay, #livesDisplay, #scoreDisplay {
+      text-align: center;
+      font-size: 1.5em;
+      margin-top: 10px;
+    }
+    #gameOverModal, #startModal, #feedbackModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 2em;
+      flex-direction: column;
+    }
+    #gameOverModal button, #startModal button {
+      margin-top: 20px;
+      font-size: 1em;
+      padding: 10px 20px;
+    }
+    #startModal {
+      display: none;
+    }
+    #gameOverModal {
+      display: none;
+    }
+    #feedbackModal {
+      display: none;
+      font-size: 3em;
+    }
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .checkbox-group label {
+      margin: 5px;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <div id="inputDisplay">Respuesta: </div>
+  <div id="livesDisplay">Vidas: 3</div>
+  <div id="scoreDisplay">Puntaje: 0</div>
+
+  <div id="startModal">
+    <div>Selecciona las tablas de multiplicar:</div>
+    <div class="checkbox-group" id="tableSelector"></div>
+    <button onclick="startGame()" id="startGameBtn" disabled>¡Comenzar juego!</button>
+    <div id="loadingNote" style="margin-top:10px; font-size:0.5em; color:yellow;">
+      Cargando imágenes...
+    </div>
+  </div>
+
+  <div id="gameOverModal">
+    <div id="finalScore"></div>
+    <button onclick="restartGame()">Reiniciar</button>
+  </div>
+
+  <div id="feedbackModal">
+    <div id="correctAnswerText"></div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Cargar imagen de fondo
+    const backgroundImg = new Image();
+    backgroundImg.src = "background.png";
+
+    // Cargar imagen del mono
+    const monkeyImg = new Image();
+    monkeyImg.src = "monkey.svg";
+
+    let imagesLoaded = 0;
+    function checkAllImagesLoaded() {
+      imagesLoaded++;
+      if (imagesLoaded >= 2) {
+        document.getElementById('startModal').style.display = 'flex';
+        document.getElementById('startGameBtn').disabled = false;
+        document.getElementById('loadingNote').style.display = "none";
+        ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+      }
+    }
+    backgroundImg.onload = checkAllImagesLoaded;
+    monkeyImg.onload = checkAllImagesLoaded;
+
+    let currentCharacter = null;
+    const characterSpeed = 0.6; // ↓ Más lento
+    let inputBuffer = '';
+    let lives = 3;
+    let score = 0;
+    let gameRunning = false;
+    let selectedTables = [];
+
+    const inputDisplay = document.getElementById('inputDisplay');
+    const livesDisplay = document.getElementById('livesDisplay');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const finalScore = document.getElementById('finalScore');
+    const startModal = document.getElementById('startModal');
+    const tableSelector = document.getElementById('tableSelector');
+    const feedbackModal = document.getElementById('feedbackModal');
+    const correctAnswerText = document.getElementById('correctAnswerText');
+
+    // Crear los checkboxes para las tablas
+    for (let i = 1; i <= 9; i++) {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = i;
+      checkbox.checked = true;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(` x${i} `));
+      tableSelector.appendChild(label);
+    }
+
+    // Clase para el carácter que cae (pregunta)
+    class FallingCharacter {
+      constructor(x, y, a, b) {
+        this.x = x;
+        this.y = y;
+        this.a = a;
+        this.b = b;
+        this.answer = (a * b).toString();
+        this.speed = characterSpeed;
+        this.active = true;
+      }
+
+      draw() {
+        if (!this.active) return;
+        const boxWidth = 120;
+        const boxHeight = 50;
+        const monkeyWidth = 96;
+        const monkeyHeight = 96;
+
+        // Dibuja el mono encima del recuadro, centrado horizontalmente
+        const monkeyX = this.x + (boxWidth - monkeyWidth) / 2;
+        const monkeyY = this.y;
+        ctx.drawImage(monkeyImg, monkeyX, monkeyY, monkeyWidth, monkeyHeight);
+
+        // Dibuja el recuadro de la pregunta debajo del mono
+        const boxX = this.x;
+        const boxY = this.y + monkeyHeight;
+        ctx.fillStyle = '#ffcc80';
+        ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+        // Dibuja la pregunta centrada
+        ctx.fillStyle = '#000';
+        ctx.font = '24px Arial';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          `${this.a} x ${this.b}`,
+          boxX + boxWidth / 2,
+          boxY + boxHeight / 2
+        );
+        ctx.textAlign = "start";
+        ctx.textBaseline = "alphabetic";
+      }
+
+      update() {
+        if (this.active) {
+          this.y += this.speed;
+          const totalHeight = 96 + 50; // alto total: mono + recuadro
+          if (this.y + totalHeight >= canvas.height) {
+            this.active = false;
+            showCorrectAnswer(`${this.a} x ${this.b} = ${this.answer}`);
+            lives--;
+            updateLives();
+            inputBuffer = '';
+            inputDisplay.textContent = `Respuesta: `;
+            if (lives > 0) {
+              setTimeout(() => {
+                currentCharacter = null;
+                spawnCharacter();
+              }, 2000);
+            }
+          }
+        }
+      }
+    }
+
+    function updateLives() {
+      livesDisplay.textContent = `Vidas: ${lives}`;
+      if (lives <= 0) {
+        gameRunning = false;
+        setTimeout(showGameOver, 2000);
+      }
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `Puntaje: ${score}`;
+    }
+
+    function spawnCharacter() {
+      if (!selectedTables.length) return;
+      if (currentCharacter && currentCharacter.active) return;
+      const a = selectedTables[Math.floor(Math.random() * selectedTables.length)];
+      const b = Math.floor(Math.random() * 9) + 1;
+      const boxWidth = 120;
+      const x = Math.random() * (canvas.width - boxWidth);
+      currentCharacter = new FallingCharacter(x, 0, a, b);
+    }
+
+    function gameLoop() {
+      // Dibuja el fondo
+      ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+
+      // Dibuja la pregunta con el mono
+      if (gameRunning && currentCharacter instanceof FallingCharacter && currentCharacter.active) {
+        currentCharacter.update();
+        currentCharacter.draw();
+      }
+      if (gameRunning) requestAnimationFrame(gameLoop);
+    }
+
+    function showGameOver() {
+      finalScore.textContent = `¡Fin del juego! Tu puntaje fue: ${score}`;
+      gameOverModal.style.display = 'flex';
+    }
+
+    function showCorrectAnswer(texto) {
+      correctAnswerText.textContent = texto;
+      feedbackModal.style.display = 'flex';
+      setTimeout(() => {
+        feedbackModal.style.display = 'none';
+      }, 2000);
+    }
+
+    function startGame() {
+      selectedTables = Array.from(tableSelector.querySelectorAll('input:checked')).map(cb => parseInt(cb.value));
+      if (!selectedTables.length) {
+        alert('Por favor, selecciona al menos una tabla de multiplicar.');
+        return;
+      }
+      lives = 3;
+      score = 0;
+      inputBuffer = '';
+      gameRunning = true;
+      currentCharacter = null;
+      updateLives();
+      updateScore();
+      inputDisplay.textContent = 'Respuesta: ';
+      startModal.style.display = 'none';
+      spawnCharacter();
+      gameLoop();
+    }
+
+    function restartGame() {
+      gameOverModal.style.display = 'none';
+      startModal.style.display = 'flex';
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (!gameRunning) return;
+
+      // Permite usar Backspace para borrar
+      if (e.key === "Backspace") {
+        inputBuffer = inputBuffer.slice(0, -1);
+        inputDisplay.textContent = `Respuesta: ${inputBuffer}`;
+        return;
+      }
+
+      // Solo acepta números
+      if (!/\d/.test(e.key)) return;
+
+      inputBuffer += e.key;
+      inputDisplay.textContent = `Respuesta: ${inputBuffer}`;
+
+      if (
+        currentCharacter instanceof FallingCharacter &&
+        currentCharacter.active
+      ) {
+        // Respuesta CORRECTA
+        if (currentCharacter.answer === inputBuffer) {
+          currentCharacter.active = false;
+          inputBuffer = '';
+          inputDisplay.textContent = `Respuesta: `;
+          score++;
+          updateScore();
+          setTimeout(() => {
+            currentCharacter = null;
+            if (gameRunning) spawnCharacter();
+          }, 1000);
+        } 
+        // Respuesta INCORRECTA: mismo largo pero no coincide
+        else if (inputBuffer.length === currentCharacter.answer.length) {
+          inputBuffer = '';
+          inputDisplay.textContent = `Respuesta: `;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
