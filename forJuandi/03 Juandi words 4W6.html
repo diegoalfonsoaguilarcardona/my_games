@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Type the Word (with spoken letters on miss)</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --tile: #0f213d;
+    --tile-hover: #152a4e;
+    --good: #22c55e;
+    --bad: #ef4444;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --accent: #60a5fa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+    background: radial-gradient(1200px 800px at 70% -200px, #12203a 0%, var(--bg) 50%) fixed;
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+  }
+  .game {
+    width: min(960px, 94vw);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  header {
+    padding: 14px 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0));
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+  .score, .lives { font-weight: 600; }
+  .score span { color: var(--accent); }
+  .lives .heart {
+    color: #f87171; font-size: 18px; margin: 0 2px;
+    filter: drop-shadow(0 0 2px rgba(255,0,0,0.2));
+  }
+  .timer {
+    grid-column: 1 / -1;
+    background: rgba(255,255,255,0.08);
+    height: 8px; border-radius: 99px; overflow: hidden; position: relative;
+  }
+  .timer .bar {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 100%;
+    background: linear-gradient(90deg, #34d399, #60a5fa, #f59e0b);
+    transform-origin: left center;
+    transition: width 0.1s linear;
+  }
+
+  .main { padding: 22px clamp(14px, 3.5vw, 28px) 28px; }
+  .prompt {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; margin-bottom: 12px; color: var(--muted); text-align: center;
+  }
+  .imageWrap {
+    display: grid; place-items: center;
+    margin: 0 auto 18px;
+    width: min(420px, 92%);
+    background: radial-gradient(400px 180px at 50% 0%, rgba(255,255,255,0.06), rgba(255,255,255,0.02)) , var(--tile);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    aspect-ratio: 1 / 1;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .imageWrap .emoji {
+    font-size: clamp(62px, 8.5vw, 120px);
+    line-height: 1;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.45));
+  }
+  .imageWrap svg {
+    width: 72%;
+    height: 72%;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
+  }
+
+  .typeWrap {
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 0 auto;
+    width: min(640px, 96%);
+    cursor: text;
+  }
+  .hint { color: var(--muted); font-size: 14px; margin-top: 8px; text-align: center; }
+  .letters {
+    display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;
+    min-height: 48px;
+  }
+  .slot {
+    width: 28px; height: 42px;
+    border-bottom: 2px dashed rgba(255,255,255,0.25);
+    display: grid; place-items: center;
+    font-size: 22px; font-weight: 800; text-transform: lowercase;
+  }
+  .slot.filled { border-bottom-color: rgba(255,255,255,0.05); }
+  .slot.ok { color: var(--good); }
+  .slot.bad { color: var(--bad); }
+  .caret {
+    width: 2px; height: 26px; background: var(--accent);
+    margin-left: 2px; animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .footer {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; padding: 16px 18px 22px; color: var(--muted);
+  }
+  .btn {
+    appearance: none;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.08); }
+  .btn.primary {
+    border-color: rgba(96,165,250,0.6);
+    background: linear-gradient(180deg, rgba(96,165,250,0.25), rgba(96,165,250,0.08));
+  }
+
+  .overlay {
+    position: fixed; inset: 0;
+    display: none; place-items: center;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    z-index: 10;
+  }
+  .overlay.show { display: grid; }
+  .modal {
+    width: min(560px, 92vw);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+  }
+  .modal h2 { margin: 0 0 10px; font-size: 28px; }
+  .modal p { color: var(--muted); margin: 0 0 14px; }
+
+  #trap { position: absolute; left: -9999px; top: -9999px; width: 0; height: 0; opacity: 0; }
+</style>
+</head>
+<body>
+  <div class="game" role="application" aria-label="Type the word">
+    <header>
+      <div class="score" aria-live="polite">Score: <span id="score">0</span></div>
+      <div style="text-align:center; font-weight:700; letter-spacing:0.4px;">Type the word for this picture, then press Enter</div>
+      <div class="lives" aria-live="polite" aria-label="Lives">
+        <span class="heart" id="heart1">❤</span>
+        <span class="heart" id="heart2">❤</span>
+        <span class="heart" id="heart3">❤</span>
+      </div>
+      <div class="timer" aria-hidden="true"><div class="bar" id="timebar" style="width:100%"></div></div>
+    </header>
+
+    <div class="main">
+      <div class="prompt">Look at the picture and spell the matching word:</div>
+
+      <div class="imageWrap" id="image" aria-label="Picture to identify"></div>
+
+      <div class="typeWrap" id="typeWrap" tabindex="0" role="group" aria-label="Typing area">
+        <div class="letters" id="letters"></div>
+      </div>
+      <div class="hint">Type letters on your keyboard. Backspace deletes. Press Enter to submit.</div>
+      <input id="trap" type="text" autocomplete="off" />
+    </div>
+
+    <div class="footer">
+      <div id="status" aria-live="polite"></div>
+      <div>
+        <button id="restart" class="btn">Restart</button>
+        <button id="skip" class="btn primary" title="Skip (lose a life)">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="gameover">
+    <div class="modal">
+      <h2>Game Over</h2>
+      <p>Your score: <strong id="finalScore">0</strong></p>
+      <button id="playAgain" class="btn primary">Play again</button>
+    </div>
+  </div>
+
+<script>
+  // Updated words
+  const WORDS = [
+    "kilogram","love","poetry","evironment","bridge traffic","kind",
+    "bird","reptile","amphibians","mammals","insects","computer","keyboard","robot"
+  ];
+
+  // Emoji/SVG/icon for each word
+  function iconHTMLFor(word) {
+    const span = (e) => `<span class="emoji" aria-hidden="true">${e}</span>`;
+    switch (word) {
+      case "kilogram":         return svgKG();
+      case "love":             return span("❤️");
+      case "poetry":           return span("📜");
+      case "evironment":       return span("🌿🌍");
+      case "bridge traffic":   return span("🌉🚗");
+      case "kind":             return span("🤝");
+      case "bird":             return span("🐦");
+      case "reptile":          return span("🦎");
+      case "amphibians":       return span("🐸");
+      case "mammals":          return span("🐘");
+      case "insects":          return span("🐞");
+      case "computer":         return span("💻");
+      case "keyboard":         return span("⌨️");
+      case "robot":            return span("🤖");
+      default:                 return span("❓");
+    }
+  }
+
+  // Simple SVG: kilogram weight with "kg"
+  function svgKG() {
+    return `
+      <svg viewBox="0 0 100 100" role="img" aria-label="Kilogram weight">
+        <rect x="22" y="28" width="56" height="52" rx="8" fill="#374151" stroke="#111827" stroke-width="2"/>
+        <path d="M35 28 q15 -18 30 0" fill="none" stroke="#111827" stroke-width="6" stroke-linecap="round"/>
+        <text x="50" y="62" text-anchor="middle" font-size="24" font-weight="900" fill="#e5e7eb">kg</text>
+      </svg>`;
+  }
+
+  // SVGs
+  function svgCave() {
+    return `
+      <svg viewBox="0 0 100 100" role="img" aria-label="Cave / Den">
+        <defs>
+          <linearGradient id="caveGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#5b6470"/>
+            <stop offset="100%" stop-color="#2a2f38"/>
+          </linearGradient>
+        </defs>
+        <path d="M10 90 Q50 10 90 90 Z" fill="url(#caveGrad)" stroke="#1f242c" stroke-width="2"/>
+        <path d="M32 90 Q50 45 68 90 Z" fill="#171a1f"/>
+      </svg>`;
+  }
+
+  function svgBottle1L() {
+    return `
+      <svg viewBox="0 0 100 100" role="img" aria-label="Bottle labeled 1 liter">
+        <defs>
+          <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#dbeafe"/>
+            <stop offset="100%" stop-color="#93c5fd"/>
+          </linearGradient>
+        </defs>
+        <rect x="38" y="10" width="24" height="10" rx="3" fill="#1e40af"/>
+        <path d="M35 20 Q50 20 65 20 L65 78 Q65 90 50 90 Q35 90 35 78 Z"
+              fill="url(#glass)" stroke="#1e3a8a" stroke-width="2"/>
+        <text x="50" y="62" text-anchor="middle" font-size="24" font-weight="900" fill="#0b1531">1L</text>
+      </svg>`;
+  }
+
+  function svgO2() {
+    return `
+      <svg viewBox="0 0 100 100" role="img" aria-label="Oxygen O2 bubble">
+        <defs>
+          <radialGradient id="bubble" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#e0f2fe"/>
+            <stop offset="100%" stop-color="#60a5fa"/>
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="50" r="40" fill="url(#bubble)" stroke="#1d4ed8" stroke-width="2" />
+        <text x="50" y="58" text-anchor="middle" font-size="30" font-weight="900" fill="#0b1531">
+          O<tspan dy="6" font-size="18">2</tspan>
+        </text>
+      </svg>`;
+  }
+
+  // Utility: shuffle array in-place
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Small async helpers
+  function wait(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+  function speak(text, opts = {}) {
+    return new Promise((resolve, reject) => {
+      if (!TTS.supported) return resolve();
+      const u = new SpeechSynthesisUtterance(String(text));
+      u.lang = (TTS.voice && TTS.voice.lang) ? TTS.voice.lang : 'en-US';
+      u.voice = TTS.voice || null;
+      u.rate = opts.rate ?? 1.0;
+      u.pitch = opts.pitch ?? 1.0;
+      u.volume = opts.volume ?? 1.0;
+      u.onend = resolve;
+      u.onerror = resolve; // resolve on error to avoid getting stuck
+      speechSynthesis.speak(u);
+    });
+  }
+
+  async function speakLettersThenWord(word) {
+    if (!TTS.supported) {
+      // No TTS: still pause a bit so the child can see the word
+      await wait(1200);
+      return;
+    }
+    try {
+      speechSynthesis.cancel(); // clear any queued speech
+    } catch {}
+    // Spell each letter
+    for (const ch of word.toLowerCase()) {
+      await speak(ch, { rate: 1.0 });
+    }
+    // Pause 1 second
+    await wait(1000);
+    // Say the whole word
+    await speak(word.toLowerCase(), { rate: 0.95 });
+  }
+
+  // DOM
+  const imageEl = document.getElementById('image');
+  const lettersEl = document.getElementById('letters');
+  const typeWrapEl = document.getElementById('typeWrap');
+  const scoreEl = document.getElementById('score');
+  const statusEl = document.getElementById('status');
+  const timebarEl = document.getElementById('timebar');
+  const overlayEl = document.getElementById('gameover');
+  const finalScoreEl = document.getElementById('finalScore');
+  const restartBtn = document.getElementById('restart');
+  const skipBtn = document.getElementById('skip');
+  const playAgainBtn = document.getElementById('playAgain');
+  const trapInput = document.getElementById('trap');
+
+  // State
+  let score = 0;
+  let lives = 3;
+  let queue = [];
+  let currentWord = null;
+  let answered = false;
+  let timerId = null;
+
+  const BASE_MS = 30000;     // 30 seconds
+  const DECREMENT_MS = 500;  // -0.5s each new word
+  const MIN_MS = 8000;       // floor so it doesn't get too tiny
+  let roundsPlayed = 0;
+
+  let typed = '';
+
+  // Speech synthesis (Web Speech API)
+  const TTS = {
+    supported: 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window,
+    voice: null,
+    ready: false
+  };
+
+  function pickVoice() {
+    if (!TTS.supported) return;
+    const voices = speechSynthesis.getVoices();
+    TTS.voice = voices.find(v => /^en(-|_|$)/i.test(v.lang)) || voices[0] || null;
+    TTS.ready = true;
+  }
+
+  if (TTS.supported) {
+    pickVoice();
+    window.speechSynthesis.addEventListener('voiceschanged', pickVoice);
+  } else {
+    statusEl.textContent = 'Tip: Your browser does not support speech. Use Chrome, Edge, or Safari, or add your own letter audio files.';
+  }
+
+  function speakLetter(ch) {
+    if (!TTS.supported) return;
+    try {
+      speechSynthesis.cancel(); // keep only the latest letter while typing
+    } catch {}
+    // Lowercase to avoid "Capital H"
+    speak(ch.toLowerCase());
+  }
+
+  function updateScore() { scoreEl.textContent = score; }
+  function updateLives() {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('heart' + i);
+      el.style.visibility = (i <= lives) ? 'visible' : 'hidden';
+    }
+  }
+
+  function focusTrap() {
+    trapInput.value = '';
+    trapInput.focus({ preventScroll: true });
+  }
+
+  function resetGame() {
+    score = 0;
+    lives = 3;
+    roundsPlayed = 0;
+    queue = shuffle([...WORDS]);
+    updateScore();
+    updateLives();
+    statusEl.textContent = TTS.supported ? '' : 'Tip: Your browser does not support speech. Use Chrome, Edge, or Safari, or add your own letter audio files.';
+    overlayEl.classList.remove('show');
+    nextRound();
+  }
+
+  function gameOver() {
+    stopTimer();
+    finalScoreEl.textContent = score;
+    overlayEl.classList.add('show');
+  }
+
+  function getRoundDuration() {
+    const ms = BASE_MS - roundsPlayed * DECREMENT_MS;
+    return Math.max(MIN_MS, ms);
+  }
+
+  function nextRound() {
+    stopTimer();
+    answered = false;
+    typed = '';
+    timebarEl.style.width = '100%';
+    statusEl.textContent = TTS.supported ? '' : 'Tip: Your browser does not support speech. Use Chrome, Edge, or Safari, or add your own letter audio files.';
+
+    if (queue.length === 0) queue = shuffle([...WORDS]);
+    currentWord = queue.pop();
+    imageEl.innerHTML = iconHTMLFor(currentWord);
+
+    renderTyped();
+    startTimer(getRoundDuration());
+    setTimeout(focusTrap, 0); // focus hidden input for mobile keyboards
+  }
+
+  function renderTyped() {
+    const target = currentWord.toLowerCase();
+    lettersEl.innerHTML = '';
+    const maxSlots = target.length;
+
+    for (let i = 0; i < maxSlots; i++) {
+      const span = document.createElement('span');
+      span.className = 'slot';
+      const ch = typed[i];
+      if (ch) {
+        span.classList.add('filled');
+        const ok = ch.toLowerCase() === target[i];
+        span.classList.add(ok ? 'ok' : 'bad');
+        span.textContent = ch.toLowerCase();
+      } else {
+        span.textContent = '';
+      }
+      lettersEl.appendChild(span);
+    }
+    if (!answered && typed.length < maxSlots) {
+      const caret = document.createElement('div');
+      caret.className = 'caret';
+      lettersEl.appendChild(caret);
+    }
+  }
+
+  async function handleMiss(prefixMsg) {
+    // Show the correct word in the slots
+    typed = currentWord;
+    renderTyped();
+
+    // Status message
+    statusEl.textContent = `${prefixMsg} It was “${currentWord}”.`;
+
+    // Speak letters then the word, with a 1s pause in between
+    await speakLettersThenWord(currentWord);
+
+    // Move on
+    if (lives <= 0) gameOver();
+    else {
+      roundsPlayed += 1;
+      nextRound();
+    }
+  }
+
+  async function submitTyped() {
+    if (answered) return;
+    if (typed.length === 0) {
+      statusEl.textContent = "Type the word first";
+      return;
+    }
+    answered = true;
+    stopTimer();
+
+    const isCorrect = typed.toLowerCase() === currentWord.toLowerCase();
+    if (isCorrect) {
+      score += 1;
+      statusEl.textContent = 'Great!';
+      updateScore();
+      renderTyped();
+      // Short pause so they see success before next
+      await wait(600);
+      if (lives <= 0) gameOver();
+      else {
+        roundsPlayed += 1;
+        nextRound();
+      }
+    } else {
+      lives -= 1;
+      updateLives();
+      updateScore();
+      await handleMiss('Oops!');
+    }
+  }
+
+  function startTimer(ms) {
+    const start = performance.now();
+    timebarEl.style.transition = 'none';
+    timebarEl.style.width = '100%';
+    requestAnimationFrame(() => { timebarEl.style.transition = 'width 0.1s linear'; });
+
+    timerId = setInterval(() => {
+      const elapsed = performance.now() - start;
+      const remain = Math.max(0, ms - elapsed);
+      const pct = (remain / ms) * 100;
+      timebarEl.style.width = pct + '%';
+      if (remain <= 0) {
+        onTimeUp();
+      }
+    }, 100);
+  }
+
+  function stopTimer() {
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+  }
+
+  async function onTimeUp() {
+    if (answered) return;
+    answered = true;
+    stopTimer();
+    lives -= 1;
+    updateLives();
+    await handleMiss('Time’s up!');
+  }
+
+  // Keyboard handling (single listener to avoid duplicates)
+  function handleKeydown(e) {
+    if (overlayEl.classList.contains('show')) return;
+    if (answered) return;
+
+    const key = e.key;
+
+    if (key === 'Enter') {
+      e.preventDefault();
+      submitTyped();
+      return;
+    }
+    if (key === 'Backspace') {
+      e.preventDefault();
+      if (typed.length > 0) {
+        typed = typed.slice(0, -1);
+        renderTyped();
+      }
+      return;
+    }
+
+    // Accept a-z letters only
+    if (/^[a-z]$/i.test(key)) {
+      e.preventDefault(); // prevent the hidden input from capturing the character
+      const limit = currentWord.length;
+      if (typed.length < limit) {
+        const letter = key.toLowerCase();
+        typed += letter;
+        renderTyped();
+        speakLetter(letter);
+      }
+      return;
+    }
+  }
+
+  // Buttons
+  restartBtn.addEventListener('click', resetGame);
+  skipBtn.addEventListener('click', () => {
+    if (answered) return;
+    onTimeUp(); // skipping costs a life and moves on with the same miss flow
+  });
+  playAgainBtn.addEventListener('click', resetGame);
+  typeWrapEl.addEventListener('click', focusTrap);
+
+  window.addEventListener('keydown', handleKeydown);
+
+  // Start
+  resetGame();
+</script>
+</body>
+</html>
