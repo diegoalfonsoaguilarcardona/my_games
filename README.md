@@ -11,10 +11,10 @@
 
 ## W6 Versions
 
-[Play Juandi Words 1 W6 (01)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/01Juandiwords3W6.html)  
-[Play Juandi Words 2 W6 (02)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/02Juandiwords1W6.html)  
-[Play Juandi Words 3 W6 (03)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/03Juandiwords4W6.html)  
-[Play Juandi Words 4 W6 (04)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/04Juandiwords1W6.html)  
+[Play Juandi Words 1 W6 (01)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/01%20Juandi%20words%203W6.html)  
+[Play Juandi Words 2 W6 (02)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/02%20Juandi%20words%201W6.html)  
+[Play Juandi Words 3 W6 (03)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/03%20Juandi%20words%204W6.html)  
+[Play Juandi Words 4 W6 (04)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/04%20Juandi%20words%201W6.html)  
 
 ## Other Games
 
