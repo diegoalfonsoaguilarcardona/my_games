@@ -28,3 +28,5 @@
 [Play Monkeys Game](https://diegoalfonsoaguilarcardona.github.io/my_games/monkeys.html)
 
 [Aprender a Restar](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/06_aprender_a_restar_07.html)
+
+[Aprender a Restar dificil](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/06_aprender_a_restar_09.html)
