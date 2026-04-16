@@ -45,6 +45,26 @@
 [Play Juandi Words 4 (04)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w12/04_Juandi_words.html)  
 [Play Juandi Words 5 (05)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w12/05_Juandi_words.html)  
 
+### W12 Word Icons
+
+| Word | Icon |
+|------|------|
+| slim | 🧍 |
+| plump | 🐷 |
+| short | 🤏 |
+| tall | 🦒 |
+| spiky | 🦔 |
+| curly | 👩‍🦱 |
+| wavy | 🌊 |
+| straight | 📏 |
+| write | ✍️ |
+| walk | 🚶 |
+| afraid | 😱 |
+| sleepy | 😴 |
+| sick | 🤒 |
+| thirsty | 🥵 |
+| hungry | 🤤 |
+
 ## Other Games
 
 [Play Monkeys Game](https://diegoalfonsoaguilarcardona.github.io/my_games/monkeys.html)
