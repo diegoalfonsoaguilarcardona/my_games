@@ -37,6 +37,14 @@
 [Play Juandi Words 3 (03)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w11/03_Juandi_words.html)  
 [Play Juandi Words 4 (04)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w11/04_Juandi_words.html)  
 
+## W12 Versions
+
+[Play Juandi Words 1 (01)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w12/01_Juandi_words.html)  
+[Play Juandi Words 2 (02)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w12/02_Juandi_words.html)  
+[Play Juandi Words 3 (03)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w12/03_Juandi_words.html)  
+[Play Juandi Words 4 (04)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w12/04_Juandi_words.html)  
+[Play Juandi Words 5 (05)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w12/05_Juandi_words.html)  
+
 ## Other Games
 
 [Play Monkeys Game](https://diegoalfonsoaguilarcardona.github.io/my_games/monkeys.html)
