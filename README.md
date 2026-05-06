@@ -142,3 +142,5 @@
 [Aprender a Restar](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/06_aprender_a_restar_07.html)
 
 [Aprender a Restar dificil](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/06_aprender_a_restar_09.html)
+
+[Aprender a Multiplicar (2 dígitos × 1 dígito)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/aprender_a_multiplicar_x_2.html)
