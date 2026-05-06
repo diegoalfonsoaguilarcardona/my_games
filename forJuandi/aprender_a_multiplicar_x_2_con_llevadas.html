@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Taller de Robots - Multiplicaciones (2 dígitos × 1 dígito, escribiendo llevadas)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --panel:#171a25;
+      --ok:#32d296;
+      --bad:#ff496c;
+      --text:#e8ecf1;
+      --muted:#aeb7c2;
+      --c:#7b9acc; --d:#6fcf97; --u:#f2994a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--text); background:linear-gradient(180deg,#0b0d12, #151926);
+      min-height:100vh; display:flex; flex-direction:column;
+    }
+    header{
+      padding:16px 20px; background:#0f1320; border-bottom:1px solid #223;
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+    header h1{margin:0; font-size:20px}
+    .chip{ background:#1c2133; color:#6cf0ff; padding:3px 8px; border-radius:999px; font-size:12px; border:1px solid #22354a; }
+    .container{
+      padding:16px; display:grid; grid-template-columns:1.2fr .8fr; gap:16px; max-width:1200px; width:100%; margin:0 auto;
+    }
+    .card{
+      background:var(--panel); border:1px solid #22283a; border-radius:12px; padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .controls{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+    .controls select,.controls button,.controls input[type="number"]{
+      background:#1b2133; color:var(--text); border:1px solid #2a334d; border-radius:8px; padding:10px 12px; font-size:14px; outline:none;
+    }
+    .controls button{ background:linear-gradient(180deg,#1e2740,#192238); cursor:pointer; }
+    .controls .stat{color:var(--muted); font-size:13px; padding:6px 10px; background:#111623; border-radius:8px; border:1px solid #20263a}
+    .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; align-items:end; user-select:none; }
+    .col-label{ font-size:12px; color:var(--muted); text-align:center; margin-bottom:6px; }
+    .col-header{display:grid; grid-template-columns:repeat(3,1fr); gap:6px}
+    .place.C{color:var(--c)} .place.D{color:var(--d)} .place.U{color:var(--u)}
+
+    .num-box{
+      background:#111626; border:1px solid #20263a; border-radius:10px; padding:8px 4px; text-align:center; position:relative;
+      min-height:64px; display:flex; align-items:center; justify-content:center;
+    }
+    .digit{
+      font-size:36px; font-weight:800; line-height:1; color:#e9f3ff; position:relative; z-index:1;
+    }
+
+    .scribble-new{
+      position:absolute; top:-6px; right:8px; font-size:16px; color:#cfe8ff; background:#0c1426; padding:2px 6px; border-radius:8px;
+      border:1px solid #2a3550; box-shadow:0 1px 0 rgba(255,255,255,.06) inset; z-index:3;
+      min-width: 28px; min-height: 22px; display:flex; align-items:center; justify-content:center;
+    }
+    .scribble-new .s-input{
+      width: 24px; max-width: 26px; text-align:center; font-weight:700; font-size:14px; color:#cfe8ff;
+      background:#0c1426; border:1px solid #2a3550; border-radius:6px; padding:1px 3px; outline:none;
+    }
+    .scribble-new .s-input.ok{ border-color:#2da87a; color:#bfffe9; background:#0f1e1a; }
+    .scribble-new .s-input.bad{ border-color:#ff6f86; color:#ffd2d9; background:#1f0f16; }
+
+    .op-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; align-items:center; margin-top:6px; }
+    .mult{ position:absolute; left:8px; top:4px; color:#9db; font-weight:700; font-size:18px; }
+    .sep{ height:2px; background:linear-gradient(90deg,#24314b, #2e395b); border-radius:2px; margin:10px 4px;}
+    .ans-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; align-items:center; }
+    .ans{
+      width:100%; text-align:center; font-size:34px; font-weight:800; color:#e9f3ff;
+      background:#0f1422; border:1px solid #26314f; border-radius:10px; padding:8px 0;
+    }
+    .ans:disabled{opacity:.4}
+    .active-col{ outline:2px solid #3f72ff55; box-shadow:0 0 0 4px #3f72ff18 inset; }
+    .hint{ margin-top:10px; font-size:14px; color:#cfe1ff; background:#111827; border:1px dashed #2a3550; padding:10px; border-radius:10px; }
+    .feedback{ margin-top:8px; min-height:22px; font-size:14px; }
+    .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
+    .footer{ text-align:center; padding:12px; color:#8fa1ba; font-size:12px; }
+    .shake{animation:shake .25s ease}
+    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}}
+    .row{ display:flex; align-items:center; gap:8px; justify-content:space-between; }
+    .tiny{font-size:11px; color:#a5b4d6}
+    .timer{
+      display:flex; align-items:center; gap:10px; min-width:260px;
+      background:#0f1422; border:1px solid #26314f; border-radius:10px; padding:8px 10px;
+    }
+    .timer .time-text{min-width:52px; text-align:right; font-weight:700}
+    .timer .bar{ position:relative; flex:1; height:12px; background:#0c1224; border:1px solid #1f2a45; border-radius:999px; overflow:hidden; }
+    .timer .bar .fill{ position:absolute; left:0; top:0; bottom:0; width:100%; background:linear-gradient(90deg, #37d2ff, #1d7cff); transition:width .15s linear, background .2s ease; }
+    .timer.low .bar .fill{ background:linear-gradient(90deg, #ffb037, #ff5e5e); animation:pulse 0.9s ease-in-out infinite; }
+    @keyframes pulse{ 0%{filter:brightness(1)} 50%{filter:brightness(1.4)} 100%{filter:brightness(1)} }
+    .sound-toggle{ background:#16203a; border:1px solid #2a3550; color:#cfe1ff; border-radius:999px; padding:6px 10px; font-size:13px; cursor:pointer; }
+    .sound-toggle.off{opacity:.6}
+    .mode-tag{font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid #2a3550; background:#121a2e; color:#bcd0ff}
+    .checkbox{
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; border:1px solid #2a334d; background:#141b2e;
+      color:#d6e2ff; font-size:12px;
+    }
+    .lives{ display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#12192a; border:1px solid #22304e; }
+    .heart{filter: drop-shadow(0 0 2px rgba(255,0,0,.4)); font-size:16px}
+    .heart.lost{opacity:.25; filter:none}
+    .heart.flash{animation:hl 0.5s ease}
+    @keyframes hl{0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)}}
+    .overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; backdrop-filter: blur(2px); }
+    .overlay .panel{
+      background:#0f1422; border:1px solid #2a3550; border-radius:14px; padding:20px; width:min(520px, 92vw);
+      text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .big{font-size:20px; font-weight:700}
+    .btn{ background:#1e2740; color:#cfe8ff; border:1px solid #2a3550; padding:10px 14px; border-radius:10px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="chip">Aprendizaje Activo</span>
+    <h1>Taller de Robots · Multiplicaciones (número de 2 dígitos × número de 1 dígito, escribiendo las llevadas)</h1>
+  </header>
+
+  <div class="container">
+    <section class="card">
+      <div class="controls">
+        <label class="tiny">Modo:
+          <select id="mode">
+            <option value="progresivo" selected>Progresivo</option>
+            <option value="sin">Sin llevadas</option>
+            <option value="con">Con llevadas</option>
+            <option value="aleatorio">Aleatorio</option>
+          </select>
+        </label>
+
+        <label class="checkbox" title="Si se activa, el jugador debe escribir las llevadas (los números de arriba) cuando aparecen.">
+          <input id="requireCarries" type="checkbox" checked />
+          Escribir las llevadas
+        </label>
+
+        <label class="tiny" title="Tiempo inicial del primer ejercicio">
+          Inicio (s): <input id="initTime" type="number" min="20" max="180" value="100" style="width:80px" />
+        </label>
+        <label class="tiny" title="Segundos menos por cada nuevo ejercicio">
+          − por juego (s): <input id="decayTime" type="number" min="0" max="10" value="2" style="width:80px" />
+        </label>
+
+        <div class="timer" id="timer">
+          <div class="time-text" id="timeText">00:00</div>
+          <div class="bar"><div class="fill" id="timeFill" style="width:100%"></div></div>
+          <button id="soundBtn" class="sound-toggle off" title="Sonido">🔈</button>
+        </div>
+
+        <div class="lives" id="lives">
+          <span class="tiny">Vidas:</span>
+          <span class="heart" data-i="0">❤️</span>
+          <span class="heart" data-i="1">❤️</span>
+          <span class="heart" data-i="2">❤️</span>
+          <span class="heart" data-i="3">❤️</span>
+          <span class="heart" data-i="4">❤️</span>
+          <span class="heart" data-i="5">❤️</span>
+        </div>
+
+        <button id="revealBtn">Mostrar solución</button>
+
+        <span class="stat" id="stat">Aciertos: 0 · Errores: 0</span>
+        <span class="mode-tag tiny" id="stageTag">Modo: Progresivo</span>
+      </div>
+
+      <div class="col-header">
+        <div class="col-label place C">Centenas (C)</div>
+        <div class="col-label place D">Decenas (D)</div>
+        <div class="col-label place U">Unidades (U)</div>
+      </div>
+
+      <!-- Número de 2 dígitos (alineado en D y U) y llevadas arriba -->
+      <div class="grid" id="topRow">
+        <div class="num-box" id="A_C">
+          <span class="digit" id="valA_C">0</span>
+          <span class="scribble-new" id="carryC"></span>
+        </div>
+        <div class="num-box" id="A_D">
+          <span class="digit" id="valA_D">0</span>
+          <span class="scribble-new" id="carryD"></span>
+        </div>
+        <div class="num-box" id="A_U">
+          <span class="digit" id="valA_U">0</span>
+          <span class="scribble-new" id="carryU"></span>
+        </div>
+      </div>
+
+      <!-- Segundo número (1 dígito) -->
+      <div class="op-row">
+        <div class="num-box" style="position:relative"><span class="mult">×</span></div>
+        <div class="num-box"></div>
+        <div class="num-box" style="position:relative">
+          <span id="valB_U" class="digit" style="font-size:32px">0</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- Resultado -->
+      <div class="ans-row">
+        <input id="ansC" class="ans" inputmode="numeric" maxlength="1" placeholder="C" />
+        <input id="ansD" class="ans" inputmode="numeric" maxlength="1" placeholder="D" />
+        <input id="ansU" class="ans" inputmode="numeric" maxlength="1" placeholder="U" />
+      </div>
+
+      <div class="hint" id="hint">
+        Empieza por las unidades (U). Si el resultado tiene dos cifras, escribe la llevada arriba de la siguiente columna.
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div style="margin-top:10px" class="row">
+        <button id="nextBtn" class="btn" style="display:none">Siguiente ejercicio</button>
+        <span class="tiny" id="progress"></span>
+      </div>
+    </section>
+
+    <aside class="card right-col">
+      <h3>Panel del Robot: Multiplicar y escribir las llevadas</h3>
+      <p class="tiny">
+        En cada ejercicio verás un número de 2 dígitos arriba y uno de 1 dígito abajo.
+        El robot trabaja columna por columna:
+      </p>
+      <ul class="tiny">
+        <li><b>Paso 1:</b> multiplica las <span class="place U">unidades</span> (U). Si el resultado tiene dos cifras, escribe la llevada arriba de las <span class="place D">decenas</span> (D).</li>
+        <li><b>Paso 2:</b> multiplica las decenas y suma la llevada que escribiste. Si vuelve a haber dos cifras, escribe la nueva llevada arriba de las <span class="place C">centenas</span> (C).</li>
+        <li><b>Paso 3:</b> si hay centenas en el resultado, escríbelas en la casilla C.</li>
+        <li>Si se acaba el tiempo o te equivocas, el robot pierde una vida. ¡Tienes 6 en total!</li>
+      </ul>
+      <p class="tiny">
+        Puedes desactivar la opción “Escribir las llevadas” si quieres que el juego las muestre automáticamente mientras practica el algoritmo.
+      </p>
+    </aside>
+  </div>
+
+  <div class="footer">
+    Taller de Robots · Multiplicación de un número de 2 dígitos por uno de 1 dígito · Con llevadas escritas por el jugador · 6 vidas
+  </div>
+
+  <div id="overlay" class="overlay">
+    <div class="panel">
+      <div class="big">Game Over</div>
+      <p>Se acabaron las vidas. ¡Bien jugado! Reinicia con 6 vidas y vuelve a intentarlo.</p>
+      <button id="restartBtn" class="btn">Reiniciar</button>
+    </div>
+  </div>
+
+  <script>
+    // Estado
+    const state = {
+      mode: 'progresivo',
+      A: [0,0,0],        // [C,D,U] del número de 2 dígitos (C casi siempre 0)
+      Bdigit: 0,         // segundo número (1 dígito)
+      product: [0,0,0],  // [C,D,U] del resultado
+      step: 2,           // 2 = U, 1 = D, 0 = C
+      done: [false,false,false],
+      useHundreds: false,
+
+      // Llevadas (valores de arriba)
+      scribbleNew: [null,null,null],     // lo que se ve arriba (C, D, U)
+      scribbleRequired: [false,false,false],
+      scribbleCorrect: [true,true,true],
+      scribbleExpect: [null,null,null],
+      requireCarries: true,
+
+      score: {ok:0, err:0, n:0},
+      timedOut: false,
+      lives: 6,
+      progressIdx: 0,
+      config: { initTime: 100, decay: 2, minTime: 15 }
+    };
+
+    // DOM
+    const el = {
+      mode: document.getElementById('mode'),
+      requireCarries: document.getElementById('requireCarries'),
+
+      initTime: document.getElementById('initTime'),
+      decayTime: document.getElementById('decayTime'),
+
+      revealBtn: document.getElementById('revealBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+
+      A_C: document.getElementById('valA_C'),
+      A_D: document.getElementById('valA_D'),
+      A_U: document.getElementById('valA_U'),
+
+      carryC: document.getElementById('carryC'),
+      carryD: document.getElementById('carryD'),
+      carryU: document.getElementById('carryU'),
+
+      B_U: document.getElementById('valB_U'),
+
+      cellA_C: document.getElementById('A_C'),
+      cellA_D: document.getElementById('A_D'),
+      cellA_U: document.getElementById('A_U'),
+
+      ansC: document.getElementById('ansC'),
+      ansD: document.getElementById('ansD'),
+      ansU: document.getElementById('ansU'),
+
+      hint: document.getElementById('hint'),
+      feedback: document.getElementById('feedback'),
+      stat: document.getElementById('stat'),
+      progress: document.getElementById('progress'),
+      stageTag: document.getElementById('stageTag'),
+
+      timer: document.getElementById('timer'),
+      timeText: document.getElementById('timeText'),
+      timeFill: document.getElementById('timeFill'),
+      soundBtn: document.getElementById('soundBtn'),
+
+      livesWrap: document.getElementById('lives'),
+      overlay: document.getElementById('overlay'),
+      restartBtn: document.getElementById('restartBtn')
+    };
+    const scribbleEls = [el.carryC, el.carryD, el.carryU];
+
+    // Utilidades
+    function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+    function computeProductDigits(A, Bdigit){
+      const num = A[1]*10 + A[2];
+      const prod = num * Bdigit;
+      const C = Math.floor(prod / 100);
+      const D = Math.floor((prod % 100) / 10);
+      const U = prod % 10;
+      return [C,D,U];
+    }
+
+    function computeCarries(A, Bdigit){
+      const unitsProd = A[2]*Bdigit;
+      const carryD = Math.floor(unitsProd / 10);
+      const tensProd = A[1]*Bdigit + carryD;
+      const carryC = Math.floor(tensProd / 10);
+      return [carryC, carryD, 0];
+    }
+
+    // Generadores
+    function genBase(){
+      const num = randInt(12,98); // 2 dígitos
+      const A = [0, Math.floor(num/10), num%10];
+      const Bdigit = randInt(2,9); // 2..9 para que sea interesante
+      return {A,Bdigit};
+    }
+
+    function genNoCarry(){
+      while(true){
+        const {A,Bdigit} = genBase();
+        const unitsProd = A[2]*Bdigit;
+        const carryD = Math.floor(unitsProd/10);
+        const tensProd = A[1]*Bdigit + carryD;
+        if(unitsProd < 10 && tensProd < 10){
+          return {A,Bdigit};
+        }
+      }
+    }
+
+    function genWithCarry(){
+      while(true){
+        const {A,Bdigit} = genBase();
+        const unitsProd = A[2]*Bdigit;
+        const carryD = Math.floor(unitsProd/10);
+        const tensProd = A[1]*Bdigit + carryD;
+        if(unitsProd >= 10 || tensProd >= 10){
+          return {A,Bdigit};
+        }
+      }
+    }
+
+    function genAny(){
+      return genBase();
+    }
+
+    // Progresión
+    function progressivePlan(idx){
+      if(idx < 8) return {stage:"1/2", label:"Sin llevadas", gen:genNoCarry};
+      return {stage:"2/2", label:"Con llevadas", gen:genWithCarry};
+    }
+
+    // Timer
+    const timer = {
+      duration: 100, remaining: 100, running: false, intervalId: null, beepTimeout: null, lastTs: null,
+      start(){
+        this.stop();
+        this.remaining=this.duration; this.running=true; this.lastTs=performance.now();
+        updateTimerUI();
+        this.intervalId=setInterval(()=>this.tick(),100);
+        this.scheduleBeep();
+      },
+      stop(){
+        this.running=false;
+        clearInterval(this.intervalId); this.intervalId=null;
+        clearTimeout(this.beepTimeout); this.beepTimeout=null;
+      },
+      tick(){
+        if(!this.running) return;
+        const now=performance.now();
+        const delta=(now-this.lastTs)/1000;
+        this.lastTs=now;
+        this.remaining=Math.max(0,this.remaining-delta);
+        updateTimerUI();
+        if(this.remaining<=0){
+          this.stop();
+          timeUp();
+        }
+      },
+      scheduleBeep(){
+        clearTimeout(this.beepTimeout);
+        if(!this.running) return;
+        const r=Math.max(0,Math.min(1,this.remaining/this.duration));
+        const delay=250+900*r;
+        const freq=550+450*(1-r);
+        audio.safeBeep(freq,0.05);
+        this.beepTimeout=setTimeout(()=>this.scheduleBeep(),delay);
+      }
+    };
+
+    function updateTimerUI(){
+      const r = timer.duration>0 ? Math.max(0, Math.min(1, timer.remaining / timer.duration)) : 0;
+      el.timeFill.style.width = `${r*100}%`;
+      const seconds = Math.ceil(timer.remaining);
+      const mm = String(Math.floor(seconds/60)).padStart(2,'0');
+      const ss = String(seconds%60).padStart(2,'0');
+      el.timeText.textContent = `${mm}:${ss}`;
+      if(r<=0.2) el.timer.classList.add('low'); else el.timer.classList.remove('low');
+    }
+
+    // Audio
+    const audio = {
+      ctx:null, master:null, enabled:false, unlocked:false,
+      init(){
+        if(this.ctx) return;
+        const AC=window.AudioContext||window.webkitAudioContext;
+        if(!AC) return;
+        this.ctx=new AC();
+        this.master=this.ctx.createGain();
+        this.master.gain.value=0.2;
+        this.master.connect(this.ctx.destination);
+      },
+      resumeIfSuspended(){
+        if(this.ctx && this.ctx.state==='suspended'){
+          return this.ctx.resume();
+        }
+        return Promise.resolve();
+      },
+      beep(f=800,d=0.06){
+        if(!this.enabled||!this.ctx) return;
+        const t0=this.ctx.currentTime;
+        const osc=this.ctx.createOscillator(), g=this.ctx.createGain();
+        osc.type='square';
+        osc.frequency.setValueAtTime(f,t0);
+        g.gain.setValueAtTime(0.0001,t0);
+        g.gain.exponentialRampToValueAtTime(0.5,t0+0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+        osc.connect(g); g.connect(this.master);
+        osc.start(t0); osc.stop(t0+d);
+      },
+      safeBeep(f,d){
+        try{
+          this.init();
+          if(!this.unlocked) return;
+          this.beep(f,d);
+        }catch(e){}
+      },
+      toggle(){
+        this.enabled=!this.enabled;
+        el.soundBtn.classList.toggle('off', !this.enabled);
+        el.soundBtn.textContent=this.enabled?'🔊':'🔈';
+        if(this.enabled){
+          this.init();
+          this.resumeIfSuspended().then(()=>{
+            this.unlocked=true;
+            this.beep(700,0.07);
+          });
+        }
+      },
+      unlockOnFirstInteraction(){
+        const handler=()=>{
+          this.init();
+          this.resumeIfSuspended().then(()=>{ this.unlocked=true; });
+          window.removeEventListener('pointerdown', handler, {capture:true});
+          window.removeEventListener('keydown', handler, {capture:true});
+        };
+        window.addEventListener('pointerdown', handler, {capture:true, once:true});
+        window.addEventListener('keydown', handler, {capture:true, once:true});
+      }
+    };
+
+    function setHint(msg){ el.hint.textContent = msg; }
+    function setFeedback(msg, type=''){
+      el.feedback.textContent = msg||'';
+      el.feedback.className = 'feedback ' + (type||'');
+    }
+    function flashBad(node){
+      node.classList.add('shake');
+      setTimeout(()=>node.classList.remove('shake'),250);
+    }
+
+    function clearScribbles(){
+      state.scribbleNew=[null,null,null];
+      state.scribbleRequired=[false,false,false];
+      state.scribbleCorrect=[true,true,true];
+      state.scribbleExpect=[null,null,null];
+      scribbleEls.forEach(w=>{ w.innerHTML=''; });
+    }
+
+    function updateTopNumbers(){
+      el.A_C.textContent = state.A[0];
+      el.A_D.textContent = state.A[1];
+      el.A_U.textContent = state.A[2];
+      el.B_U.textContent = state.Bdigit;
+
+      // Si no hay input creado, mostramos el valor (si existe)
+      for(let i=0;i<3;i++){
+        const wrap = scribbleEls[i];
+        if(!wrap.querySelector('input')){
+          wrap.textContent = (state.scribbleNew[i] != null && state.scribbleNew[i] !== '') ? String(state.scribbleNew[i]) : '';
+        }
+      }
+    }
+
+    function updateStageTag(){
+      if(state.mode!=='progresivo'){
+        const map = {
+          sin: 'Sin llevadas',
+          con: 'Con llevadas',
+          aleatorio: 'Aleatorio'
+        };
+        el.stageTag.textContent = 'Modo: ' + (map[state.mode] || '');
+      } else {
+        const p = progressivePlan(state.progressIdx);
+        el.stageTag.textContent = `Etapa: ${p.stage} · ${p.label}`;
+      }
+    }
+
+    function updateView(){
+      updateTopNumbers();
+      highlightActive();
+      setFeedback('');
+      el.stat.textContent = `Aciertos: ${state.score.ok} · Errores: ${state.score.err}`;
+      const num = state.A[1]*10 + state.A[2];
+      const full = num * state.Bdigit;
+      el.progress.textContent = `Ejercicio ${state.score.n+1}: ${num} × ${state.Bdigit} = ? (respuesta: ${full})`;
+      updateStageTag();
+    }
+
+    function highlightActive(){
+      [el.cellA_C, el.cellA_D, el.cellA_U].forEach(c=>c.classList.remove('active-col'));
+      [el.ansC, el.ansD, el.ansU].forEach(i=>{ i.disabled=true; });
+
+      if(state.timedOut) return;
+
+      const focusScribbleInput = (col)=>{
+        const node = scribbleEls[col].querySelector('input');
+        if(node){ node.focus(); node.select && node.select(); }
+      };
+
+      const carries = computeCarries(state.A, state.Bdigit);
+
+      if(state.step===2){
+        // Paso en unidades
+        el.cellA_U.classList.add('active-col');
+
+        if(state.requireCarries && carries[1] > 0 && !state.scribbleCorrect[1]){
+          // Necesita escribir llevada hacia decenas (columna D)
+          if(!state.scribbleRequired[1]){
+            requireScribble(1, carries[1]);
+          }
+          focusScribbleInput(1);
+          setHint(`Primero escribe la llevada hacia las decenas: ¿cuánto llevas de ${state.A[2]} × ${state.Bdigit}?`);
+          return;
+        }
+
+        el.ansU.disabled=false;
+        el.ansU.focus();
+        if(carries[1] > 0){
+          setHint(`Ahora multiplica las unidades: ${state.A[2]} × ${state.Bdigit}. Escribe el dígito de las unidades y recuerda que llevas ${carries[1]} hacia las decenas.`);
+        } else {
+          setHint(`Multiplica las unidades: ${state.A[2]} × ${state.Bdigit}. Escribe el dígito de las unidades.`);
+        }
+      } else if(state.step===1){
+        // Paso en decenas
+        el.cellA_D.classList.add('active-col');
+
+        if(state.requireCarries && carries[0] > 0 && !state.scribbleCorrect[0]){
+          // Necesita escribir llevada hacia centenas (columna C)
+          if(!state.scribbleRequired[0]){
+            requireScribble(0, carries[0]);
+          }
+          focusScribbleInput(0);
+          setHint(`Escribe la llevada hacia las centenas: viene de las decenas al multiplicar ${state.A[1]} × ${state.Bdigit} más la llevada anterior.`);
+          return;
+        }
+
+        el.ansD.disabled=false;
+        el.ansD.focus();
+        const unitsProd = state.A[2]*state.Bdigit;
+        const carryD = Math.floor(unitsProd/10);
+        if(carryD>0){
+          setHint(`Ahora multiplica las decenas: ${state.A[1]} × ${state.Bdigit} y suma la llevada ${carryD}. Escribe el dígito de las decenas.`);
+        } else {
+          setHint(`Multiplica las decenas: ${state.A[1]} × ${state.Bdigit}. Escribe el dígito de las decenas.`);
+        }
+      } else {
+        // Paso en centenas (solo si hay)
+        el.cellA_C.classList.add('active-col');
+        if(state.useHundreds){
+          el.ansC.disabled=false;
+          el.ansC.focus();
+          setHint(`Por último, escribe el dígito de las centenas (si lo hay).`);
+        } else {
+          // No hay centenas, podemos finalizar si todo está correcto
+          el.ansC.disabled=true;
+        }
+      }
+    }
+
+    // Crear input para escribir las llevadas
+    function requireScribble(col, expected){
+      state.scribbleRequired[col] = true;
+      state.scribbleCorrect[col] = false;
+      state.scribbleExpect[col] = expected;
+      state.scribbleNew[col] = '';
+
+      const wrap = scribbleEls[col];
+      wrap.innerHTML = '';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.inputMode = 'numeric';
+      inp.maxLength = 1;
+      inp.placeholder = '?';
+      inp.className = 's-input';
+      wrap.appendChild(inp);
+
+      const validate = ()=>{
+        inp.value = inp.value.replace(/[^\d]/g,'').slice(0,1);
+        if(inp.value.length===0){
+          inp.classList.remove('ok','bad');
+          return;
+        }
+        const val = parseInt(inp.value,10);
+        if(val === expected){
+          inp.classList.remove('bad');
+          inp.classList.add('ok');
+          state.scribbleCorrect[col] = true;
+          state.scribbleNew[col] = expected;
+          setTimeout(()=>{
+            wrap.innerHTML = String(expected);
+            highlightActive();
+          }, 100);
+          audio.safeBeep(900,0.06);
+          setFeedback('¡Correcto! Llevada escrita.','ok');
+        } else {
+          inp.classList.remove('ok');
+          inp.classList.add('bad');
+        }
+      };
+
+      inp.addEventListener('input', validate);
+      inp.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){
+          validate();
+          highlightActive();
+        }
+      });
+
+      inp.focus();
+    }
+
+    // Vidas
+    function updateLivesUI(){
+      const hearts = el.livesWrap.querySelectorAll('.heart');
+      hearts.forEach((h,i)=> h.classList.toggle('lost', i >= state.lives));
+      const idx = Math.max(0, state.lives - 1);
+      const heart = hearts[idx];
+      if(heart){
+        heart.classList.add('flash');
+        setTimeout(()=>heart.classList.remove('flash'), 500);
+      }
+    }
+
+    function loseLife(reason=''){
+      if(state.lives<=0) return;
+      state.lives = Math.max(0, state.lives - 1);
+      updateLivesUI();
+      if(reason==='wrong'){
+        setFeedback("¡Ups! Ese dígito no es correcto. Pierdes una vida.", 'bad');
+      }
+      if(state.lives<=0){
+        timer.stop();
+        setTimeout(()=>showGameOver(), 400);
+      }
+    }
+
+    // Verificación de columna
+    function checkColumn(col){
+      if(state.timedOut) return;
+
+      // Si antes hay una llevada obligatoria en esta misma columna y aún no está bien, la pedimos primero
+      if(state.requireCarries){
+        if(col===2 && state.scribbleRequired[1] && !state.scribbleCorrect[1]){
+          setFeedback("Antes de escribir el resultado, escribe la llevada hacia las decenas.","bad");
+          const node = scribbleEls[1].querySelector('input');
+          if(node) node.focus();
+          audio.safeBeep(350,0.07);
+          return;
+        }
+        if(col===1 && state.scribbleRequired[0] && !state.scribbleCorrect[0]){
+          setFeedback("Antes de escribir el resultado, escribe la llevada hacia las centenas.","bad");
+          const node = scribbleEls[0].querySelector('input');
+          if(node) node.focus();
+          audio.safeBeep(350,0.07);
+          return;
+        }
+      }
+
+      const input = col===2 ? el.ansU : col===1 ? el.ansD : el.ansC;
+      const val = input.value.trim();
+      if(!/^\d$/.test(val)){ return; }
+
+      const expected = state.product[col];
+
+      if(parseInt(val,10) === expected){
+        state.done[col] = true;
+        input.disabled = true;
+        audio.safeBeep(980,0.07);
+
+        if(col===2){
+          // Pasar a decenas
+          state.step = 1;
+          setFeedback("¡Bien! Ahora vamos con las decenas.","ok");
+        } else if(col===1){
+          // Pasar a centenas o terminar
+          if(state.useHundreds){
+            state.step = 0;
+            setFeedback("¡Genial! Solo falta la cifra de las centenas.","ok");
+          } else {
+            finishExercise();
+            return;
+          }
+        } else {
+          // Centenas
+          finishExercise();
+          return;
+        }
+        updateView();
+      } else {
+        setFeedback("Revisa esta columna y vuelve a intentarlo.","bad");
+        flashBad(input);
+        state.score.err++;
+        audio.safeBeep(280,0.08);
+        loseLife('wrong');
+        updateView();
+      }
+    }
+
+    function finishExercise(){
+      if(state.timedOut) return;
+
+      // Si exige llevadas, aseguramos que están correctas
+      if(state.requireCarries){
+        for(let i=0;i<3;i++){
+          if(state.scribbleRequired[i] && !state.scribbleCorrect[i]){
+            setFeedback("Completa las llevadas arriba antes de terminar.","bad");
+            const node = scribbleEls[i].querySelector('input');
+            if(node) node.focus();
+            return;
+          }
+        }
+      }
+
+      state.score.ok++;
+      state.score.n++;
+      timer.stop();
+      setHint("¡Robot listo! Has completado la multiplicación.");
+      setFeedback("Excelente. Preparando el siguiente reto...", 'ok');
+
+      // Pequeña melodía de éxito
+      setTimeout(()=>audio.safeBeep(700,0.06), 0);
+      setTimeout(()=>audio.safeBeep(900,0.06), 80);
+      setTimeout(()=>audio.safeBeep(1100,0.08), 160);
+
+      setTimeout(()=>autoNext(), 800);
+    }
+
+    function autoNext(){
+      if(state.lives<=0) return;
+      state.progressIdx++;
+      generateProblem(state.mode, true);
+    }
+
+    function timeUp(){
+      state.timedOut = true;
+      setHint("Tiempo agotado. ¡Perdiste una vida!");
+      setFeedback("Se acabó el tiempo ⏱️",'bad');
+      [el.ansC,el.ansD,el.ansU].forEach(i=>i.disabled=true);
+      state.score.err++;
+      audio.safeBeep(200,0.08);
+      setTimeout(()=>audio.safeBeep(280,0.08),90);
+      setTimeout(()=>audio.safeBeep(360,0.1),180);
+      loseLife('time');
+      if(state.lives>0){
+        setTimeout(()=>autoNext(), 1000);
+      }
+    }
+
+    function showGameOver(){
+      el.overlay.style.display='flex';
+    }
+
+    function resetGame(){
+      el.overlay.style.display='none';
+      state.lives=6;
+      updateLivesUI();
+      state.score={ok:0,err:0,n:0};
+      state.progressIdx=0;
+      generateProblem(state.mode || 'progresivo', false);
+    }
+
+    // Mostrar solución
+    function revealSolution(){
+      timer.stop();
+      state.timedOut = true;
+
+      clearScribbles();
+      const prod = computeProductDigits(state.A, state.Bdigit);
+      const carries = computeCarries(state.A, state.Bdigit);
+      state.product = prod;
+      state.useHundreds = prod[0] > 0;
+
+      // Mostramos llevadas si existen
+      if(carries[1]>0) state.scribbleNew[1] = carries[1];
+      if(carries[0]>0) state.scribbleNew[0] = carries[0];
+
+      el.ansC.value = prod[0];
+      el.ansD.value = prod[1];
+      el.ansU.value = prod[2];
+
+      [el.ansC, el.ansD, el.ansU].forEach(i=>i.disabled=true);
+
+      state.done=[true,true,true];
+      state.step=0;
+
+      const num = state.A[1]*10 + state.A[2];
+      const full = num * state.Bdigit;
+      setHint(`Solución mostrada: ${num} × ${state.Bdigit} = ${full}. Observa cómo aparecen las llevadas arriba.`);
+      setFeedback('');
+      updateTopNumbers();
+      el.nextBtn.style.display='inline-block';
+    }
+
+    // Selección de generador por modo
+    function pickGeneratorByMode(mode){
+      if(mode==='sin') return genNoCarry;
+      if(mode==='con') return genWithCarry;
+      if(mode==='aleatorio'){
+        return Math.random() < 0.5 ? genNoCarry : genWithCarry;
+      }
+      const plan = progressivePlan(state.progressIdx);
+      return plan.gen;
+    }
+
+    function computeDurationForIndex(idx){
+      const base = parseInt(el.initTime.value,10) || state.config.initTime;
+      const dec = parseInt(el.decayTime.value,10) || state.config.decay;
+      return Math.max(state.config.minTime, base - dec * idx);
+    }
+
+    function generateProblem(mode, fromAuto=false){
+      state.mode = mode;
+      state.timedOut=false;
+      state.done=[false,false,false];
+      state.step=2;
+      clearScribbles();
+
+      el.nextBtn.style.display='none';
+
+      const gen = pickGeneratorByMode(mode);
+      const P = gen();
+      state.A = [...P.A];
+      state.Bdigit = P.Bdigit;
+      state.product = computeProductDigits(state.A, state.Bdigit);
+      state.useHundreds = state.product[0] > 0;
+
+      el.ansC.value='';
+      el.ansD.value='';
+      el.ansU.value='';
+
+      el.ansC.disabled = !state.useHundreds;
+      el.ansC.placeholder = state.useHundreds ? 'C' : '-';
+
+      timer.duration = computeDurationForIndex(state.progressIdx);
+      timer.start();
+
+      updateView();
+      audio.safeBeep(700,0.07);
+
+      if(!fromAuto){
+        setHint("Nuevo ejercicio listo. Comienza por las unidades (U). Si hay llevada, escríbela arriba.");
+      }
+    }
+
+    // Eventos
+    el.mode.addEventListener('change', e=>{
+      state.mode=e.target.value;
+      state.progressIdx=0;
+      generateProblem(state.mode);
+    });
+
+    el.requireCarries.addEventListener('change', (e)=>{
+      state.requireCarries = e.target.checked;
+      if(state.requireCarries){
+        setFeedback("Activado: deberás escribir las llevadas cuando aparezcan.","");
+      } else {
+        setFeedback("Desactivado: las llevadas se mostrarán automáticamente.","");
+        clearScribbles();
+        updateTopNumbers();
+        highlightActive();
+      }
+    });
+
+    el.initTime.addEventListener('change', ()=>{
+      state.config.initTime = parseInt(el.initTime.value,10) || state.config.initTime;
+    });
+    el.decayTime.addEventListener('change', ()=>{
+      state.config.decay = parseInt(el.decayTime.value,10) || state.config.decay;
+    });
+
+    el.nextBtn.addEventListener('click', ()=>generateProblem(state.mode));
+    el.revealBtn.addEventListener('click', revealSolution);
+    el.soundBtn.addEventListener('click', ()=>audio.toggle());
+    el.restartBtn.addEventListener('click', resetGame);
+
+    [el.ansU, el.ansD, el.ansC].forEach(inp=>{
+      inp.addEventListener('input', (e)=>{
+        e.target.value = e.target.value.replace(/[^\d]/g,'').slice(0,1);
+        const col = (e.target===el.ansU) ? 2 : (e.target===el.ansD) ? 1 : 0;
+        checkColumn(col);
+      });
+      inp.addEventListener('focus', ()=> setFeedback(''));
+      inp.addEventListener('keydown', (ev)=>{
+        if(ev.key==='Enter'){
+          const col = (ev.target===el.ansU) ? 2 : (ev.target===el.ansD) ? 1 : 0;
+          checkColumn(col);
+        }
+      });
+    });
+
+    // Inicio
+    (function init(){
+      audio.init();
+      audio.unlockOnFirstInteraction();
+
+      state.mode = el.mode.value || 'progresivo';
+      state.requireCarries = el.requireCarries.checked;
+
+      state.config.initTime = parseInt(el.initTime.value,10) || state.config.initTime;
+      state.config.decay = parseInt(el.decayTime.value,10) || state.config.decay;
+
+      updateLivesUI();
+      updateStageTag();
+      generateProblem(state.mode);
+    })();
+  </script>
+</body>
+</html>
