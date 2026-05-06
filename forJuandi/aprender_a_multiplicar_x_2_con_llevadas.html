@@ -881,6 +881,16 @@
       state.product = computeProductDigits(state.A, state.Bdigit);
       state.useHundreds = state.product[0] > 0;
 
+      // Si el ejercicio va a tener llevadas y la opción está activada,
+      // marcamos que esas llevadas deben ser escritas por el jugador.
+      const carries = computeCarries(state.A, state.Bdigit);
+      if(state.requireCarries && carries[1] > 0){
+        state.scribbleCorrect[1] = false; // llevada hacia decenas
+      }
+      if(state.requireCarries && carries[0] > 0){
+        state.scribbleCorrect[0] = false; // llevada hacia centenas
+      }
+
       el.ansC.value='';
       el.ansD.value='';
       el.ansU.value='';
