@@ -77,11 +77,11 @@
 
 | Word | Icon |
 |------|------|
-| purple glasses | 👓 |
+| purple glasses | 🟣👓 |
 | black hat | 🎩 |
-| clothes | 👕 |
-| blue jacket | 🧥 |
-| white skirt | 👚 |
+| clothes | 👕👖 |
+| blue jacket | 🧥🔵 |
+| white skirt | ⚪👗 |
 | shoe | 👞 |
 | brown bag | 👜 |
 | pink handbag | 👛 |
@@ -89,10 +89,10 @@
 | watch | ⌚ |
 | trousers | 👖 |
 | shirt | 👔 |
-| sweater | 👚 |
+| sweater | 🧶 |
 | shorts | 🩳 |
 | T-shirt | 👕 |
-| jeans | 👖 |
+| jeans | 👖🧵 |
 | dress | 👗 |
 | sneakers | 👟 |
 

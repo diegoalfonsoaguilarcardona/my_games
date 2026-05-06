@@ -240,11 +240,11 @@
     const span = (e) => `<span class="emoji" aria-hidden="true">${e}</span>`;
 
     switch (word) {
-      case "purple glasses": return span("👓");
+      case "purple glasses": return span("🟣👓");   // purple dot + glasses
       case "black hat":      return span("🎩");
-      case "clothes":        return span("👕");
-      case "blue jacket":    return span("🧥");
-      case "white skirt":    return span("👚");
+      case "clothes":        return span("👕👖");   // shirt + trousers (more than one)
+      case "blue jacket":    return span("🧥🔵");   // coat with blue dot
+      case "white skirt":    return span("⚪👗");   // white dot + skirt/dress
       case "shoe":           return span("👞");
       case "brown bag":      return span("👜");
       case "pink handbag":   return span("👛");
@@ -252,10 +252,10 @@
       case "watch":          return span("⌚");
       case "trousers":       return span("👖");
       case "shirt":          return span("👔");
-      case "sweater":        return span("👚");
+      case "sweater":        return span("🧶");     // yarn = sweater
       case "shorts":         return span("🩳");
       case "T-shirt":        return span("👕");
-      case "jeans":          return span("👖");
+      case "jeans":          return span("👖🧵");   // jeans + thread
       case "dress":          return span("👗");
       case "sneakers":       return span("👟");
       default:               return span("❓");
