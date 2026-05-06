@@ -96,6 +96,45 @@
 | dress | 👗 |
 | sneakers | 👟 |
 
+## W15 Versions
+
+[Play Juandi Words 1 (01)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w15/01_Juandi_words.html)  
+[Play Juandi Words 2 (02)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w15/02_Juandi_words.html)  
+[Play Juandi Words 3 (03)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w15/03_Juandi_words.html)  
+[Play Juandi Words 4 (04)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w15/04_Juandi_words.html)  
+[Play Juandi Words 5 (05)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w15/05_Juandi_words.html)  
+
+### W15 Word Icons
+
+| Word | Icon |
+|------|------|
+| meat | 🥩 |
+| potato | 🥔 |
+| dinner | 🍽️🌙 |
+| fish | 🐟 |
+| water | 💧 |
+| egg | 🥚 |
+| sausage | 🌭 |
+| beans | 🫘 |
+| breakfast | 🍳☕ |
+| milk | 🥛 |
+| mango | 🥭 |
+| pineapple | 🍍 |
+| lime | 🟢🍋 |
+| lemon | 🍋 |
+| pear | 🍐 |
+| rice | 🍚 |
+| tomato | 🍅 |
+| onion | 🧅 |
+| coconut | 🥥 |
+| fruit | 🍎🍌🍇 |
+| bread | 🍞 |
+| peas | 🫛 |
+| apple | 🍎 |
+| banana | 🍌 |
+| grapes | 🍇 |
+| orange | 🍊 |
+
 ## Other Games
 
 [Play Monkeys Game](https://diegoalfonsoaguilarcardona.github.io/my_games/monkeys.html)
