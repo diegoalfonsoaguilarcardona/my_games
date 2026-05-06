@@ -65,6 +65,37 @@
 | thirsty | 🥵 |
 | hungry | 🤤 |
 
+## W14 Versions
+
+[Play Juandi Words 1 (01)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w14/01_Juandi_words.html)  
+[Play Juandi Words 2 (02)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w14/02_Juandi_words.html)  
+[Play Juandi Words 3 (03)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w14/03_Juandi_words.html)  
+[Play Juandi Words 4 (04)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w14/04_Juandi_words.html)  
+[Play Juandi Words 5 (05)](https://diegoalfonsoaguilarcardona.github.io/my_games/forJuandi/w14/05_Juandi_words.html)  
+
+### W14 Word Icons
+
+| Word | Icon |
+|------|------|
+| purple glasses | 👓 |
+| black hat | 🎩 |
+| clothes | 👕 |
+| blue jacket | 🧥 |
+| white skirt | 👚 |
+| shoe | 👞 |
+| brown bag | 👜 |
+| pink handbag | 👛 |
+| sock | 🧦 |
+| watch | ⌚ |
+| trousers | 👖 |
+| shirt | 👔 |
+| sweater | 👚 |
+| shorts | 🩳 |
+| T-shirt | 👕 |
+| jeans | 👖 |
+| dress | 👗 |
+| sneakers | 👟 |
+
 ## Other Games
 
 [Play Monkeys Game](https://diegoalfonsoaguilarcardona.github.io/my_games/monkeys.html)
